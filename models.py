@@ -1,5 +1,5 @@
 import sqlalchemy as sq
-from sqlalchemy import ForeignKey, orm
+from sqlalchemy import ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
 

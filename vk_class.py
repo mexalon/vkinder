@@ -1,6 +1,6 @@
-import vk_api
 import sys
 import time
+import vk_api
 
 
 class Kinder:
