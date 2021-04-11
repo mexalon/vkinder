@@ -6,6 +6,7 @@ from vk_class import Kinder
 
 def search_result_processing(id_, k, Session):
     # по айти запрашивает полный профиль, и если он валидный, то добавляет в базу и выводит результат
+    result = False
     already_in_db = Session().query(User).filter(User.user_id == id_).first()
 
     if not already_in_db:  # если такого нет в базе - добавляем в базу
@@ -25,17 +26,17 @@ def search_result_processing(id_, k, Session):
                 pu = ProfUrls(user_id=new_u.user_id, url=prof_url)
                 session.add(pu)
             session.commit()
+
+            # запрос из базы, чтобы лучше научиться
+            new_u_from_db = Session().query(User).filter(User.user_id == id_).first()
+            prof_photo_from_db = new_u_from_db.photo_urls
+
+            print(f"Вот, например, {new_u_from_db}")  # вывод результатов
+            [print(item) for item in prof_photo_from_db]
+            result = new_u_from_db.id  # возвращает айди из базы
         else:
             return False  # профиль не валидный
 
-    # запрос из базы, чтобы лучше научиться
-    new_u_from_db = Session().query(User).filter(User.user_id == id_).first()
-    prof_photo_from_db = new_u_from_db.photo_urls
-
-    print(f"Вот, например, {new_u_from_db}") #вывод результатов
-    [print(item) for item in prof_photo_from_db]
-
-    result = new_u_from_db.id # возвращает айди пользователя в собственной базе
     return result
 
 def go_go(k, Session, url=None):
@@ -49,8 +50,6 @@ def go_go(k, Session, url=None):
         u = resp[0]
 
     res = make_search(k, u)  # итератор с результатами поиска
-
-
     print(f"Ищем пару для {u['first_name']} {u['last_name']}")
     for r in res:
         new_id = search_result_processing(r['id'], k, Session) # обработка и добавление в базу
