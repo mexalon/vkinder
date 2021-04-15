@@ -13,17 +13,26 @@ class User(Base):
     user_id = sq.Column(sq.Integer, unique=True, nullable=False)
     first_name = sq.Column(sq.String)
     last_name = sq.Column(sq.String)
-    sex = sq.Column(sq.Integer,)
+    sex = sq.Column(sq.Integer, )
     bdate = sq.Column(sq.String)
     city = sq.Column(sq.String)
     profile_link = sq.Column(sq.String)
     photo_urls = relationship('ProfUrls')
 
-
     def __str__(self):
         self.profile_link = f"https://vk.com/id{self.user_id}"
         ss = f'{self.first_name} {self.last_name} {self.profile_link}'
         return ss
+
+    def mk_dict(self):
+        d = {'user_id': self.user_id,
+             'first_name': self.first_name,
+             'last_name': self.last_name,
+             'sex': self.sex,
+             'bdate': self.bdate,
+             'city': self.city
+             }
+        return d
 
 
 class ProfUrls(Base):
@@ -36,15 +45,17 @@ class ProfUrls(Base):
     def __str__(self):
         return f"{self.url}"
 
-def create_db(DSN):
-    engine = sq.create_engine(DSN)
+
+def create_db(dsn):
+    engine = sq.create_engine(dsn)
     Session = sessionmaker(bind=engine)
     Base.metadata.create_all(bind=engine)
     return Session
 
-def clear_db(DSN):
+
+def clear_db(dsn):
     """очищает базу """
-    engine = sq.create_engine(DSN)
+    engine = sq.create_engine(dsn)
     connection = engine.connect()
     delete_list = ('photo_urls', 'vk_user',)
     for entry in delete_list:

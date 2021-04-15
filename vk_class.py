@@ -1,33 +1,31 @@
 import sys
 import time
+from random import randrange
+
 import vk_api
+from vk_api.longpoll import VkLongPoll, VkEventType
 
 
 class Kinder:
-    def __init__(self, log=None, passw=None, token=None):
-        """создаёт сессию разными способами"""
+    def __init__(self, token=None, c_token=None):
+        """создаёт сессию """
+        self.v = None
         self.vk = None
         self.token = token
-        self.login = log
-        self.password = passw
-        if self.login and self.password:
-            vk_session = vk_api.VkApi(self.login, self.password)
-            try:
-                vk_session.auth(token_only=True)
-            except vk_api.AuthError as error_msg:
-                print(error_msg)
-                sys.exit()
+        self.c_token = c_token
 
-            self.vk = vk_session.get_api()
+        if self.token and self.c_token:
+            self.vk = vk_api.VkApi(token=self.token).get_api()  # метоыд пользователя
 
-        if self.token:
-            vk_session = vk_api.VkApi(token=self.token)
-            self.vk = vk_session.get_api()
+            self.c_vk = vk_api.VkApi(token=self.c_token)  # методы сообщества
+            self.c_lp = VkLongPoll(vk_api.VkApi(token=self.c_token))
+
             try:
                 self.users_get()
             except vk_api.exceptions.ApiError as error_msg:
                 print(error_msg)
                 sys.exit()
+
 
     def users_get(self, id_=None):
         try:
@@ -58,4 +56,32 @@ class Kinder:
             return
 
         return res
+
+    def write_msg(self, user_id, message):
+        self.c_vk.method('messages.send', {'user_id': user_id, 'message': message, 'random_id': randrange(10 ** 7), })
+
+    def read_msg(self):
+        for event in self.c_lp.listen():
+            if event.type == VkEventType.MESSAGE_NEW:
+                if event.to_me:
+                    return event
+
+
+class Talk:
+    def __init__(self, k, id_):
+        self.k = k
+        self.id_ = id_
+
+    def write(self, message):
+        self.k.write_msg(self.id_, message)
+
+    def read(self):
+        text = False
+        while not text:
+            event = self.k.read_msg()
+            if event.user_id == self.id_:
+                text = event.text
+        return text
+
+
 
