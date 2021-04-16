@@ -1,22 +1,17 @@
 """Разные функции, не требующие импортов из других модулей"""
-import json
 
 
 def dump_it(session_maker, new_u, pu):
+    res = False
     if session_maker:
         session = session_maker()
         session.add(new_u)
         for p in pu:
             session.add(p)
         session.commit()
-    else:  # запись в файл если недоступна база
-        with open("dump_file.txt", "a", encoding='utf-8') as f:
-            f.write(new_u.mk_dict().__repr__())
-            # я думал выгрузить словарь в виде json, но там кириллица отображается  ввиде кодов юникода
-            # типа \u0430 И я ничего не могу с этим поделать. В каком вообще виде лучше всего хранить обьекты
-            # алхимии, если не в виде базы?
-        with open("dump_file.json", "a", encoding='utf-8') as f:
-            json.dump(new_u.mk_dict(), f)
+        res = True
+    return res
+
 
 def make_search(k, u, t):
     """формирует запрос и отдаёт итератор с результатами"""
