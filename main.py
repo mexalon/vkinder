@@ -3,7 +3,7 @@ import json
 import sqlalchemy
 
 from functions import *
-from models import User, ProfUrls, create_db, clear_db
+from models import User, ProfUrls, create_db
 from secret import my_token, comm_token, DSN
 from vk_class import Kinder, Talk
 
@@ -58,7 +58,7 @@ def go_go(k, session_maker):
                 t.write(f"Вот, например, {new_id['u']}")  # вывод результатов в чат
                 [t.write(item) for item in new_id['pu']]
 
-                dump_it(session_maker, new_id['u'], new_id['pu'])
+                dump_it(session_maker, new_id['u'], new_id['pu']) # запись в базу, если доступно
                 dump_list += [new_id['u'].mk_dict()]
 
                 t.write(f"Выберите 'q' для выхода или 'n' для продолжения")
@@ -73,7 +73,6 @@ def go_go(k, session_maker):
 
 
 if __name__ == '__main__':
-    clear_db(DSN)
     try:
         Session = create_db(DSN)
     except sqlalchemy.exc.OperationalError as error_msg:
