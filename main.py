@@ -10,8 +10,7 @@ from vk_class import Kinder, Talk
 
 def search_result_processing(id_, t, k, session_maker):
     # по айти запрашивает полный профиль, и если он валидный, то добавляет в базу и выводит результат
-
-    if Session:
+    if session_maker:
         # если есть доступ к базе - запрос, чтобы избежать повтор
         already_in_db = session_maker().query(User).filter(User.user_id == id_).first()
     else:
@@ -30,21 +29,9 @@ def search_result_processing(id_, t, k, session_maker):
 
             # новый объект фоток
             pu = [ProfUrls(user_id=new_u.user_id, url=one_url) for one_url in get_best_prof_photos(k, new_u.user_id)]
-            # запись в базу
-            if Session:
-                session = session_maker()
-                session.add(new_u)
-                for p in pu:
-                    session.add(p)
-                session.commit()
-            else:  # запись в файл если недоступна база
-                with open("dump_file.txt", "a", encoding='utf-8') as f:
-                    f.write(new_u.mk_dict().__repr__())
-                    # я думал выгрузить словарь в виде json, но там кириллица отображается  ввиде кодов юникода
-                    # типа \u0430 И я ничего не могу с этим поделать. В каком вообще виде лучше всего хранить обьекты
-                    # алхимии, если не в виде базы?
-                with open("dump_file.json", "a", encoding='utf-8') as f:
-                    json.dump(new_u.mk_dict(), f)
+
+            # запись в базу или файл
+            dump_it(session_maker, new_u, pu)
 
             print(f"Вот, например, {new_u}")  # вывод результатов в консоль
             [print(item) for item in pu]
